@@ -29,9 +29,22 @@
 		6273C2502D4CD6600094BF2E /* UWBScannerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UWBScannerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6273C2642D4CD7370094BF2E /* Exceptions for "UWBScanner" folder in "UWBScanner" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6273C2352D4CD65F0094BF2E /* UWBScanner */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6273C2382D4CD65F0094BF2E /* UWBScanner */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6273C2642D4CD7370094BF2E /* Exceptions for "UWBScanner" folder in "UWBScanner" target */,
+			);
 			path = UWBScanner;
 			sourceTree = "<group>";
 		};
@@ -399,11 +412,18 @@
 				DEVELOPMENT_TEAM = U2S8Q8VES6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UWBScanner/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the device camera to improve NI positioning, no image is taken or recorded.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to provide compass information.";
+				INFOPLIST_KEY_NSNearbyInteractionUsageDescription = "Demonstrate the Nearby Interaction third-party accessory API with a Bluetooth connected accessory";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -428,11 +448,18 @@
 				DEVELOPMENT_TEAM = U2S8Q8VES6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UWBScanner/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the device camera to improve NI positioning, no image is taken or recorded.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to provide compass information.";
+				INFOPLIST_KEY_NSNearbyInteractionUsageDescription = "Demonstrate the Nearby Interaction third-party accessory API with a Bluetooth connected accessory";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
