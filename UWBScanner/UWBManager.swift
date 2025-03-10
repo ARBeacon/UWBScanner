@@ -378,10 +378,38 @@ extension UWBManager {
         
         if let sphereNode = beaconARAnchor[beacon] {
             sphereNode.position = SCNVector3(x: position.x, y: position.y, z: position.z)
+            if let worldMapDefaultOrientation = arViewModel.worldMapDefaultOrientation {
+                let orientationVector = worldMapDefaultOrientation.vector
+                sphereNode.orientation = SCNQuaternion(orientationVector)
+            }
         } else {
             let sphereNode = SCNNode(geometry: SCNSphere(radius: 0.02))
             sphereNode.geometry?.firstMaterial?.diffuse.contents = colorList.randomElement()
             sphereNode.position = SCNVector3(x: position.x, y: position.y, z: position.z)
+            if let worldMapDefaultOrientation = arViewModel.worldMapDefaultOrientation {
+                let orientationVector = worldMapDefaultOrientation.vector
+                sphereNode.orientation = SCNQuaternion(orientationVector)
+            }
+            
+            let axisLength: Float = 0.1
+            let xAxis = SCNNode(geometry: SCNCylinder(radius: 0.001, height: CGFloat(axisLength)))
+            xAxis.geometry?.firstMaterial?.diffuse.contents = UIColor.red
+            xAxis.position = SCNVector3Make(Float(axisLength) / 2, 0, 0)
+            xAxis.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
+            
+            let yAxis = SCNNode(geometry: SCNCylinder(radius: 0.001, height: CGFloat(axisLength)))
+            yAxis.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            yAxis.position = SCNVector3Make(0, Float(axisLength) / 2, 0)
+            
+            let zAxis = SCNNode(geometry: SCNCylinder(radius: 0.001, height: CGFloat(axisLength)))
+            zAxis.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            zAxis.position = SCNVector3Make(0, 0, Float(axisLength) / 2)
+            zAxis.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
+            
+            sphereNode.addChildNode(xAxis)
+            sphereNode.addChildNode(yAxis)
+            sphereNode.addChildNode(zAxis)
+            
             scene.rootNode.addChildNode(sphereNode)
             beaconARAnchor[beacon] = sphereNode
         }

@@ -57,39 +57,58 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
 
 extension ARViewModel {
     func getAlignedOrientation() -> simd_quatf? {
-        guard let trueHeading = trueHeading else { return nil }
+        guard let trueHeadingDegrees = trueHeading else { return nil }
+        let trueHeading = Angle(degrees: trueHeadingDegrees).radians
         guard let arSession = sceneView?.session else { return nil }
-        guard let cameraOrientation = arSession.currentFrame?.camera.transform.rotation else { return nil }
-        let headingAngle = Float(trueHeading * .pi / 180.0)
-        
-        // Rotate Q by A degrees about the Y-axis.
-        let rotY = simd_quatf(angle: headingAngle, axis: simd_float3(0, 1, 0))
-        let Qprime = rotY * cameraOrientation
-        
-        // Compute where the local J axis (0,1,0) ended up.
-        let J = Qprime.act(simd_float3(0, 1, 0))
-        let worldY = simd_float3(0, 1, 0)
-        
-        // Compute the axis (and angle) needed to rotate J into alignment with worldY.
-        // The axis is the cross product of J and worldY.
-        let cross = simd_cross(J, worldY)
-        let dot = simd_dot(J, worldY)
-        
-        // Clamp dot to the valid range of acos.
-        let dotClamped = simd_clamp(dot, -1, 1)
-        let angleToAlign = acos(dotClamped)
-        
-        // If J is already (almost) aligned, then no extra rotation is needed.
-        if abs(angleToAlign) < 1e-5 {
-            return Qprime
+        guard let deviceOrientation = arSession.currentFrame?.camera.transform.rotation else { return nil }
+        func getJAxis(_ orientation: simd_quatf) -> simd_float3 {
+            let quat = simd_normalize(orientation)
+            let transformedY = quat.act(simd_float3(x: 0, y: 1, z: 0))
+            return transformedY
         }
         
-        // Normalize the rotation axis.
-        let axisAlignment = simd_normalize(cross)
+        let globalY = simd_float3(x: 0, y: 1, z: 0)
+        let j = getJAxis(deviceOrientation)
+        let jProjectionOnXZ = simd_float3(x: j.x, y: 0, z: j.z)
         
-        let alignmentQuat = simd_quatf(angle: angleToAlign, axis: axisAlignment)
-        let finalQuat = alignmentQuat * Qprime
-        return finalQuat
+        print("\(j) \(jProjectionOnXZ)")
+        
+        func signedAngleBetweenVectors(_ vectorA: simd_float3, _ vectorB: simd_float3) -> Float {
+            let dotProduct = simd_dot(vectorA, vectorB)
+            let magnitudeA = simd_length(vectorA)
+            let magnitudeB = simd_length(vectorB)
+            let angle = acos(dotProduct / (magnitudeA * magnitudeB))
+            let crossProduct = simd_cross(vectorA, vectorB)
+            let direction = simd_dot(crossProduct, globalY)
+            return (direction < 0) ? angle : -angle
+        }
+        
+        let localHeading = signedAngleBetweenVectors(simd_float3(x: 1, y: 0, z: 0), jProjectionOnXZ)
+        
+        if localHeading.isNaN { return nil }
+        
+        let northRoatationLocalRelativeAngle = localHeading-Float(trueHeading)
+        
+        func normalizeRadian(_ angle: Float) -> Float{
+            let aRound = 2*Float.pi
+            var r = angle
+            while r >= aRound || r < 0 {
+                if r >= aRound {r-=aRound}
+                else {r+=aRound}
+            }
+            return r
+        }
+        
+        let normalOrietation = simd_quatf(angle: normalizeRadian(northRoatationLocalRelativeAngle), axis: simd_float3(x: 0, y: -1, z: 0))
+        
+        func getAngleString(_ angle: Float) -> String {
+            if angle.isNaN { return "NaN" }
+            if angle < 0 { return "-" + getAngleString(-angle) }
+            return String(format: "%.2f", angle*180.0/Float.pi)
+        }
+        print("Local: \(getAngleString(localHeading)), Global: \(getAngleString(Float(trueHeading))) = \(getAngleString(normalOrietation.angle)) \(String(format: "%.2f", northRoatationLocalRelativeAngle))")
+        
+        return normalOrietation
     }
 }
 
