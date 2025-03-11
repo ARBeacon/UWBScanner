@@ -60,7 +60,12 @@ extension ARViewModel {
         guard let trueHeadingDegrees = trueHeading else { return nil }
         let trueHeading = Angle(degrees: trueHeadingDegrees).radians
         guard let arSession = sceneView?.session else { return nil }
-        guard let deviceOrientation = arSession.currentFrame?.camera.transform.rotation else { return nil }
+        guard let cameraOrientation = arSession.currentFrame?.camera.transform.rotation else { return nil }
+        
+        // https://stackoverflow.com/questions/57501327/arkit-arcamera-transform-incorrectly-rotated-90-degrees-clockwise
+        // https://stackoverflow.com/questions/59671828/what-is-the-orientation-of-arkits-camera-space#:~:text=landscapeRight%20orientation%E2%80%94that%20is%2C%20the,device%20on%20the%20screen%20side.
+        let deviceOrientation = cameraOrientation * simd_quatf(angle: .pi/2, axis: simd_float3(x: 0, y: 0, z: 1))
+        
         func getJAxis(_ orientation: simd_quatf) -> simd_float3 {
             let quat = simd_normalize(orientation)
             let transformedY = quat.act(simd_float3(x: 0, y: 1, z: 0))
@@ -71,7 +76,11 @@ extension ARViewModel {
         let j = getJAxis(deviceOrientation)
         let jProjectionOnXZ = simd_float3(x: j.x, y: 0, z: j.z)
         
-        print("\(j) \(jProjectionOnXZ)")
+        func getSIM3DString(_ vector: simd_float3) -> String {
+            return "(\(String(format: "%.2f", vector.x)), \(String(format: "%.2f", vector.y)), \(String(format: "%.2f", vector.z)))"
+        }
+        
+        // print("\(getSIM3DString(j)) \(getSIM3DString(jProjectionOnXZ))")
         
         func signedAngleBetweenVectors(_ vectorA: simd_float3, _ vectorB: simd_float3) -> Float {
             let dotProduct = simd_dot(vectorA, vectorB)
@@ -93,8 +102,8 @@ extension ARViewModel {
             let aRound = 2*Float.pi
             var r = angle
             while r >= aRound || r < 0 {
-                if r >= aRound {r-=aRound}
-                else {r+=aRound}
+                if r >= aRound { r -= aRound }
+                else { r += aRound }
             }
             return r
         }
@@ -106,7 +115,8 @@ extension ARViewModel {
             if angle < 0 { return "-" + getAngleString(-angle) }
             return String(format: "%.2f", angle*180.0/Float.pi)
         }
-        print("Local: \(getAngleString(localHeading)), Global: \(getAngleString(Float(trueHeading))) = \(getAngleString(normalOrietation.angle)) \(String(format: "%.2f", northRoatationLocalRelativeAngle))")
+        
+        print("Local: \(getAngleString(localHeading)), Global: \(getAngleString(Float(trueHeading))) = \(String(format: "%.2f", northRoatationLocalRelativeAngle))")
         
         return normalOrietation
     }
