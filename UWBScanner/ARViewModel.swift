@@ -74,12 +74,24 @@ extension ARViewModel {
         
         let globalY = simd_float3(x: 0, y: 1, z: 0)
         let j = getJAxis(deviceOrientation)
+        
+        func isInRetrivalRange() -> Bool{
+            let isOnDepression: Bool = j.y < 0
+            func getKAxis(_ orientation: simd_quatf) -> simd_float3 {
+                let quat = simd_normalize(orientation)
+                let transformedZ = quat.act(simd_float3(x: 0, y: 0, z: 1))
+                return transformedZ
+            }
+            let isOnElevation: Bool = getKAxis(deviceOrientation).y < 0
+            return !isOnDepression && !isOnElevation
+        }
+        if !isInRetrivalRange() { return nil }
+        
         let jProjectionOnXZ = simd_float3(x: j.x, y: 0, z: j.z)
         
         func getSIM3DString(_ vector: simd_float3) -> String {
             return "(\(String(format: "%.2f", vector.x)), \(String(format: "%.2f", vector.y)), \(String(format: "%.2f", vector.z)))"
         }
-        
         // print("\(getSIM3DString(j)) \(getSIM3DString(jProjectionOnXZ))")
         
         func signedAngleBetweenVectors(_ vectorA: simd_float3, _ vectorB: simd_float3) -> Float {
