@@ -76,13 +76,13 @@ extension ARViewModel {
         let j = getJAxis(deviceOrientation)
         
         func isInRetrivalRange() -> Bool{
-            let isOnDepression: Bool = j.y < 0
+            let isOnDepression: Bool = j.y < 0.1
             func getKAxis(_ orientation: simd_quatf) -> simd_float3 {
                 let quat = simd_normalize(orientation)
                 let transformedZ = quat.act(simd_float3(x: 0, y: 0, z: 1))
                 return transformedZ
             }
-            let isOnElevation: Bool = getKAxis(deviceOrientation).y < 0
+            let isOnElevation: Bool = getKAxis(deviceOrientation).y < 0.1
             return !isOnDepression && !isOnElevation
         }
         if !isInRetrivalRange() { return nil }
