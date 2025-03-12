@@ -69,12 +69,53 @@ class Beacon: Identifiable, ObservableObject, Hashable {
     @Published var lastCBScan: CBScanResult? = nil
     @Published var lastRanging: RangingResult? = nil
     
+    class RangingTerminationState {
+        final private let treshold: Float = 0.1 // meters
+        final private let confirmingDelay: TimeInterval = 15 // seconds
+        
+        var firstConsecutiveTresholdPassedTimestamp: Date? = nil
+        var lastPosition: simd_float3? = nil
+        
+        public func reset() {
+            firstConsecutiveTresholdPassedTimestamp = nil
+            lastPosition = nil
+        }
+        
+        public func updateAndReturnShouldStop(with position: simd_float3) -> Bool {
+            if let lastPosition = lastPosition {
+                let distance = distance(position, lastPosition)
+                if distance > treshold { firstConsecutiveTresholdPassedTimestamp = nil }
+                else {
+                    if firstConsecutiveTresholdPassedTimestamp == nil { firstConsecutiveTresholdPassedTimestamp = Date() }
+                    else if Date().timeIntervalSince(firstConsecutiveTresholdPassedTimestamp!) > Double(confirmingDelay) {
+                        return true
+                    }
+                }
+            }
+            lastPosition = position
+            return false
+        }
+    }
+    private var rangingTerminationState: RangingTerminationState
+    
     init(peripheral: CBPeripheral) {
         self.peripheral = peripheral
+        self.rangingTerminationState = .init()
     }
     
     func identifier() -> UUID {
         return peripheral.identifier
+    }
+    
+    public func updateRangingResultAndReturnShouldStop(_ result: RangingResult) -> Bool {
+        self.lastRanging = result
+        if let position = result.worldMapPosition {
+            return self.rangingTerminationState.updateAndReturnShouldStop(with: position)
+        }
+        return false
+    }
+    public func onConnect(){
+        self.rangingTerminationState.reset()
     }
 }
 
@@ -109,6 +150,9 @@ class UWBManager: NSObject, ObservableObject {
     }
     
     private var beaconARAnchor: [Beacon: SCNNode] = [:]
+    
+    @Published private(set) var doneAutoRanging: Set<Beacon> = []
+    @Published private(set) var isAutoSchedulingOn: Bool = false
 }
 
 extension UWBManager {
@@ -119,7 +163,39 @@ extension UWBManager {
     }
 }
 
-// Scanning Logic
+// MARK: Auto Scheduling
+extension UWBManager {
+    
+    func toggleAutoScheduling() {
+        doneAutoRanging = []
+        isAutoSchedulingOn.toggle()
+    }
+    
+    func autoScheduingPerformNext(){
+        let staleInterval: TimeInterval = 30
+        
+        if !isAutoSchedulingOn { return }
+        if case .busy = uwbState { return }
+        
+        let yetToAutoRanging = beacons.filter {
+            !doneAutoRanging.contains($0) &&
+            $0.lastCBScan != nil &&
+            Date().timeIntervalSince($0.lastCBScan!.timestamp) < staleInterval
+        }
+        
+        if let beacon = yetToAutoRanging.max(by: {
+            guard let rssi1 = $0.lastCBScan?.rssi, let rssi2 = $1.lastCBScan?.rssi else {
+                return false
+            }
+            return rssi1.doubleValue < rssi2.doubleValue
+        }) {
+            connect(to: beacon)
+        }
+        
+    }
+}
+
+// MARK: Scanning Logic
 extension UWBManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
@@ -137,6 +213,7 @@ extension UWBManager: CBCentralManagerDelegate {
         let beacon = getOrCreateBeacon(from: peripheral)
         beacon.lastCBScan = Beacon.CBScanResult(timestamp: Date(), advertisementData: advertisementData, rssi: RSSI)
         if let index = beacons.firstIndex(where: { $0.id == beacon.id }) { beacons[index] = beacon }
+        autoScheduingPerformNext()
     }
     
     
@@ -188,11 +265,13 @@ extension UWBManager: CBPeripheralDelegate {
             niSession.pause()
         }
         uwbState = .idle
+        autoScheduingPerformNext()
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?) {
         print("DEBUG: didFailToConnect to \(peripheral.name ?? "Unknown")")
         uwbState = .idle
+        autoScheduingPerformNext()
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -311,6 +390,7 @@ extension UWBManager: NISessionDelegate {
         let peripheral = currentBeaconCommunication.beacon.peripheral
         
         sendData(msg, peripheral: peripheral, chacteristic: currentBeaconCommunication.rxCharacteristic!)
+        currentBeaconCommunication.beacon.onConnect()
     }
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
@@ -326,16 +406,22 @@ extension UWBManager: NISessionDelegate {
         
         let wordMapPosition = fullfilWorldMapPosition(session.worldTransform(for: accessory)?.translation)
         
-        beacon.lastRanging = Beacon.RangingResult(
-            timestamp: Date(),
-            location: accessory,
-            worldMapPosition: wordMapPosition
+        let shouldStop = beacon.updateRangingResultAndReturnShouldStop(
+            Beacon.RangingResult(
+                timestamp: Date(),
+                location: accessory,
+                worldMapPosition: wordMapPosition
+            )
         )
         
         putToAR(beacon)
         sendBeaconLocationToLogger(beacon)
-        
-        if let index = beacons.firstIndex(where: { $0 == beacon }) { beacons[index] = beacon }
+        if shouldStop {
+            if isAutoSchedulingOn {
+                doneAutoRanging.insert(beacon)
+            }
+            disconnect(from: beacon)
+        }
     }
     
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {

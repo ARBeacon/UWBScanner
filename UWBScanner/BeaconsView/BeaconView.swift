@@ -10,6 +10,7 @@ import SwiftUI
 struct BeaconView: View {
     
     @StateObject var beacon: Beacon
+    @State var isAutoSchedulingOn: Bool
     @EnvironmentObject var uwbManager: UWBManager
     
     var uwbState: UWBManager.UWBState {
@@ -109,11 +110,14 @@ struct BeaconView: View {
                     Button("Connect"){
                         uwbManager.connect(to: beacon)
                     }
+                    .disabled(isAutoSchedulingOn)
                 }
                 else {
                     Button("Disconnect"){
                         uwbManager.disconnect(from: beacon)
-                    }.foregroundColor(.red)
+                    }
+                    .foregroundColor(isAutoSchedulingOn ? nil : .red)
+                    .disabled(isAutoSchedulingOn)
                 }
             }
         }

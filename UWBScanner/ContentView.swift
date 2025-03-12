@@ -34,9 +34,6 @@ struct ContentView: View {
         }
     }
     
-    var beacons: [Beacon] {
-        uwbManager.beacons
-    }
     
     var trueHeading: Double? {
         arViewModel.trueHeading
@@ -46,13 +43,27 @@ struct ContentView: View {
         arViewModel.worldMapDefaultOrientation
     }
     
+    var isAutoSchedulingOn: Bool {
+        uwbManager.isAutoSchedulingOn
+    }
+    
     var body: some View {
         VStack{
             if !isShowingARView {
                 NavigationStack {
-                    BeaconsView(beacons: beacons)
+                    BeaconsView(uwbManager: uwbManager)
                         .navigationTitle("UWB Beacons")
                         .toolbar {
+                            Toggle(isOn:
+                                    Binding(
+                                        get:{isAutoSchedulingOn},
+                                        set:{_ in
+                                            uwbManager.toggleAutoScheduling()
+                                        }
+                                    )
+                            )
+                            { Text("Auto Scheduling") }
+                                .tint(.green)
                             Button(action: {
                                 navigateToLogView = true
                             }) {
