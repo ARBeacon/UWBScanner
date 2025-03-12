@@ -413,6 +413,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = UWBScanner/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the device camera to improve NI positioning, no image is taken or recorded.";
@@ -449,6 +450,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = UWBScanner/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the device camera to improve NI positioning, no image is taken or recorded.";

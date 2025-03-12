@@ -50,12 +50,16 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         return false
     }
     
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        worldMapDefaultOrientation = getAlignedOrientation()
-    }
 }
 
+// MARK: Logic for worldMapDefaultOrientation
 extension ARViewModel {
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        if let alignedOrientation = getAlignedOrientation(){
+            worldMapDefaultOrientation = alignedOrientation
+        }
+    }
+    
     func getAlignedOrientation() -> simd_quatf? {
         guard let trueHeadingDegrees = trueHeading else { return nil }
         let trueHeading = Angle(degrees: trueHeadingDegrees).radians
@@ -128,7 +132,7 @@ extension ARViewModel {
             return String(format: "%.2f", angle*180.0/Float.pi)
         }
         
-        print("Local: \(getAngleString(localHeading)), Global: \(getAngleString(Float(trueHeading))) = \(String(format: "%.2f", northRoatationLocalRelativeAngle))")
+        // print("Local: \(getAngleString(localHeading)), Global: \(getAngleString(Float(trueHeading))) = \(String(format: "%.2f", northRoatationLocalRelativeAngle))")
         
         return normalOrietation
     }

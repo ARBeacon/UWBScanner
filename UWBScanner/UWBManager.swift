@@ -177,7 +177,7 @@ extension UWBManager: CBPeripheralDelegate {
         uwbState = .busy(with: CurrentBeaconCommunication(beacon: beacon))
         let peripheral = beacon.peripheral
         print("DEBUG: Connecting to \(peripheral.name ?? "Unknown"))")
-        centralManager.connect(peripheral, options: nil) // TODO: didFailToConnect
+        centralManager.connect(peripheral, options: nil)
     }
     
     func disconnect(from beacon: Beacon){
@@ -335,6 +335,7 @@ extension UWBManager: NISessionDelegate {
         )
         
         putToAR(beacon)
+        sendBeaconLocationToLogger(beacon)
         
         if let index = beacons.firstIndex(where: { $0 == beacon }) { beacons[index] = beacon }
     }
@@ -367,6 +368,23 @@ extension UWBManager: NISessionDelegate {
         
     }
     
+}
+
+// MARK: Logger helper
+extension UWBManager {
+    private func sendBeaconLocationToLogger(_ beacon: Beacon){
+        struct LocationUpdateLog: Codable {
+            let beaconName: String?
+            let position: simd_float3?
+        }
+        Logger.addLog(
+            label: "Beacon Location Update",
+            content: LocationUpdateLog(
+                beaconName: beacon.peripheral.name,
+                position: beacon.lastRanging?.worldMapPosition
+            )
+        )
+    }
 }
 
 extension UWBManager {

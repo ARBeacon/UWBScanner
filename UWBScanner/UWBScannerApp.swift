@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct UWBScannerApp: App {
+    init(){
+        Logger.addLog(label: "Application launched")
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
