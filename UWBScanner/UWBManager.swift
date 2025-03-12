@@ -320,12 +320,10 @@ extension UWBManager: NISessionDelegate {
         let beacon = currentBeaconCommunication.beacon
         
         func fullfilWorldMapPosition(_ wordMapPosition: simd_float3?) -> simd_float3? {
-            if wordMapPosition == nil {
-                return currentBeaconCommunication.beacon.lastRanging?.worldMapPosition
-            } else {
-                return wordMapPosition
-            }
+            if let wordMapPosition = wordMapPosition { return wordMapPosition}
+            else { return currentBeaconCommunication.beacon.lastRanging?.worldMapPosition }
         }
+        
         let wordMapPosition = fullfilWorldMapPosition(session.worldTransform(for: accessory)?.translation)
         
         beacon.lastRanging = Beacon.RangingResult(

@@ -67,7 +67,7 @@ class Logger: ObservableObject {
         let dateTimeString = formatter.string(from: currentDateTime)
         
         if let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let fileURL = documentDirectory.appendingPathComponent("\(dateTimeString)-\(sessionIdentifier)-ble-arkit-log.json")
+            let fileURL = documentDirectory.appendingPathComponent("\(dateTimeString)-\(sessionIdentifier)-uwb-scanner-log.json")
             
             do {
                 let data = try JSONEncoder().encode(self.logs)
