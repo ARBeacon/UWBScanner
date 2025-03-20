@@ -1,0 +1,26 @@
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "resources" : [
+    {
+      "filename" : "Car.arreferenceimage"
+    },
+    {
+      "filename" : "Earth.arreferenceimage"
+    },
+    {
+      "filename" : "Lenna.arreferenceimage"
+    },
+    {
+      "filename" : "Mandrill.arreferenceimage"
+    },
+    {
+      "filename" : "Peppers.arreferenceimage"
+    },
+    {
+      "filename" : "Sailboat.arreferenceimage"
+    }
+  ]
+}

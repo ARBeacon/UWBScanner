@@ -88,6 +88,10 @@ class Beacon: Identifiable, ObservableObject, Hashable {
                 else {
                     if firstConsecutiveTresholdPassedTimestamp == nil { firstConsecutiveTresholdPassedTimestamp = Date() }
                     else if Date().timeIntervalSince(firstConsecutiveTresholdPassedTimestamp!) > Double(confirmingDelay) {
+                        Logger.addLog(
+                            label: "Stop Signal With firstConsecutiveThresholdPassedTimestamp",
+                            content: firstConsecutiveTresholdPassedTimestamp
+                        )
                         return true
                     }
                 }
@@ -169,6 +173,7 @@ extension UWBManager {
     func toggleAutoScheduling() {
         doneAutoRanging = []
         isAutoSchedulingOn.toggle()
+        Logger.addLog(label: "Toggle AutoScheduling", content: isAutoSchedulingOn)
     }
     
     func autoScheduingPerformNext(){
@@ -254,6 +259,7 @@ extension UWBManager: CBPeripheralDelegate {
         uwbState = .busy(with: CurrentBeaconCommunication(beacon: beacon))
         let peripheral = beacon.peripheral
         print("DEBUG: Connecting to \(peripheral.name ?? "Unknown"))")
+        Logger.addLog(label: "Connecting To Beacon", content: peripheral.name)
         centralManager.connect(peripheral, options: nil)
     }
     
@@ -419,7 +425,17 @@ extension UWBManager: NISessionDelegate {
         if shouldStop {
             if isAutoSchedulingOn {
                 doneAutoRanging.insert(beacon)
+                //                disconnect(from: beacon)
             }
+            struct LocationUpdateLog: Codable {
+                let beaconName: String?
+                let position: simd_float3?
+            }
+            Logger.addLog(label: "Beacon is Stabled", content:
+                            LocationUpdateLog(
+                                beaconName: beacon.peripheral.name,
+                                position: wordMapPosition
+                            ))
             disconnect(from: beacon)
         }
     }

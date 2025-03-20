@@ -18,12 +18,14 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
     
     override init() {
         super.init()
+        Logger.addLog(label: "Initialize ARViewModel")
         sceneView = makeARView()
         
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.headingFilter = kCLHeadingFilterNone
         locationManager.startUpdatingHeading()
+        Logger.addLog(label: "Finished Initialize ARViewModel")
     }
     
     public static var defaultConfiguration: ARWorldTrackingConfiguration {
@@ -35,6 +37,12 @@ class ARViewModel: NSObject, ObservableObject, ARSessionDelegate, ARSCNViewDeleg
         configuration.isCollaborationEnabled = false
         configuration.userFaceTrackingEnabled = false
         configuration.initialWorldMap = nil
+        
+        if let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) {
+            print("DEBUG: Found \(referenceImages.count) AR reference images")
+            configuration.detectionImages = referenceImages
+        }
+        
         return configuration
     }
     
@@ -157,4 +165,74 @@ struct ARViewContainer: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {}
+}
+
+// MARK: ImageAnchor
+struct AnchorLog: Encodable{
+    let name: String?
+    let identifier: UUID
+    let transform: simd_float4x4
+}
+
+extension ARViewModel {
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        print(anchor)
+        switch anchor {
+        case let imageAnchor as ARImageAnchor:
+            handleImageAnchor(imageAnchor, node: node)
+        case _ as ARPlaneAnchor: break
+        default: break
+        }
+        
+        func handleImageAnchor(_ imageAnchor: ARImageAnchor, node: SCNNode) {
+            
+            Logger.addLog(
+                label: "ARImageAnchor didAdd",
+                content: AnchorLog(
+                    name: imageAnchor.referenceImage.name,
+                    identifier: imageAnchor.identifier,
+                    transform: imageAnchor.transform
+                )
+            )
+            
+            let planeNode = createPlaneNode(for: imageAnchor)
+            
+            node.addChildNode(planeNode)
+        }
+    }
+    
+    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+        
+        for anchor in anchors {
+            switch anchor {
+            case let imageAnchor as ARImageAnchor:
+                handleImageAnchor(imageAnchor)
+            case _ as ARPlaneAnchor: break
+            default: break
+            }
+        }
+        
+        func handleImageAnchor(_ imageAnchor: ARImageAnchor) {
+            Logger.addLog(
+                label: "ARImageAnchor didUpdate",
+                content: AnchorLog(
+                    name: imageAnchor.referenceImage.name,
+                    identifier: imageAnchor.identifier,
+                    transform: imageAnchor.transform)
+            )
+        }
+        
+    }
+    
+    private func createPlaneNode(for imageAnchor: ARImageAnchor) -> SCNNode {
+        let referenceImage = imageAnchor.referenceImage
+        let plane = SCNPlane(width: referenceImage.physicalSize.width, height: referenceImage.physicalSize.height)
+        
+        let planeNode = SCNNode(geometry: plane)
+        planeNode.eulerAngles.x = -.pi / 2
+        
+        plane.firstMaterial?.diffuse.contents = UIColor.blue.withAlphaComponent(0.8)
+        
+        return planeNode
+    }
 }
