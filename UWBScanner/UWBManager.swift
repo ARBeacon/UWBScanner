@@ -427,14 +427,16 @@ extension UWBManager: NISessionDelegate {
                 doneAutoRanging.insert(beacon)
                 //                disconnect(from: beacon)
             }
-            struct LocationUpdateLog: Codable {
+            struct BeaconUpdateLog: Encodable {
                 let beaconName: String?
                 let position: simd_float3?
+                let transform: simd_float4x4?
             }
             Logger.addLog(label: "Beacon is Stabled", content:
-                            LocationUpdateLog(
+                            BeaconUpdateLog(
                                 beaconName: beacon.peripheral.name,
-                                position: wordMapPosition
+                                position: wordMapPosition,
+                                transform: beaconARAnchor[beacon]?.simdWorldTransform
                             ))
             disconnect(from: beacon)
         }
