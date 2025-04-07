@@ -28,6 +28,7 @@ Minimal iOS app for testing UWB ranging with [DWM3001CDK](https://www.qorvo.com/
    - Verify successful flash
 
 ### App Setup
+1. Clone the repo
 ```bash
 git clone https://github.com/ARBeacon/UWBScanner.git
 ```
